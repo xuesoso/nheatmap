@@ -6,26 +6,20 @@ Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap
 ![Example](./examples/example1.png)
 
 ## Requirements
-   ```
    "python >= 3.5",
    "matplotlib >= 3.0.3",
    "scipy >= 1.3.1",
    "numpy >= 1.17.2",
    "pandas >= 0.25.1"
-   ```
 
 ## Installation
     Option 1 via pip:
 
-    ```
     pip install nheatmap
-    ```
 
     Option 1 via github:
 
-    ```
     git clone https://github.com/xuesoso/nheatmap
-    ```
 
     Include the cloned directory as part of the python path
 
