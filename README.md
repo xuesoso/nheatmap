@@ -25,7 +25,7 @@ git clone https://github.com/xuesoso/nheatmap
 Include the cloned directory as part of the python path
 
 ## Usage
-- Check [here](https://nbviewer.jupyter.org/github/xuesoso/nheatmap/blob/master/tutorial.ipynb) for a tutorial on usage.
+- [Check here](https://github.com/xuesoso/nheatmap/blob/master/tutorial.ipynb) for a tutorial on usage.
 
 ## Other plotting tools
 - [DensityPlot](https://github.com/xuesoso/DensityPlot)
