@@ -22,11 +22,10 @@ pip install nheatmap
 ```bash
 git clone https://github.com/xuesoso/nheatmap
 ```
-- Include the cloned directory as part of the python path
+Include the cloned directory as part of the python path
 
 ## Usage
 - Check [here](https://nbviewer.jupyter.org/github/xuesoso/nheatmap/blob/master/tutorial.ipynb) for a tutorial on usage.
 
 ## Other plotting tools
-**Other plotting tool made by me**
 - [DensityPlot](https://github.com/xuesoso/DensityPlot)
