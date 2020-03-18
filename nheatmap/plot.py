@@ -403,6 +403,7 @@ class nheatmap():
             adjusted_s = s * (cbar_height/10)**2
             length = len(stored['ulab'])
             ncol = int(length / 10)
+            if ncol < 1: ncol = 1
             for i, u in enumerate(stored['ulab']):
                 val = stored['tdict'][u]
                 ax.scatter([], [], color=stored['mapper'].to_rgba(val),
@@ -410,7 +411,7 @@ class nheatmap():
                 ax.patch.set_alpha(0)
             ax.legend(frameon=False, title=key, ncol=ncol, loc='center',
                     fontsize=self.sub_title_font_size,
-                    bbox_to_anchor=(1, 0.5), scatterpoints=1, markerscale=1)
+                    bbox_to_anchor=(1, 0.5))
         else:
             if __below__:
                 stored['mapper'].set_array([])
