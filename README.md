@@ -16,14 +16,17 @@ Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap
 
 ## Installation
     Option 1 via pip:
+
     ```
     pip install nheatmap
     ```
 
     Option 1 via github:
-    ```bash
+
+    ```
     git clone https://github.com/xuesoso/nheatmap
     ```
+
     Include the cloned directory as part of the python path
 
 ## Usage
