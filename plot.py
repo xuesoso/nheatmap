@@ -193,6 +193,7 @@ class nheatmap():
         ax.grid(False)
         self.remove_border(ax)
         ax.set_yticks([])
+        ax.patch.set_alpha(0)
         self.remove_ticks(ax)
         return dendrogram
 
@@ -291,6 +292,13 @@ class nheatmap():
             self.cbar_data[key] = {}
             self.cbar_data[key]['df'] = df
             self.cbar_data[key]['cmap'] = cmap
+            minima = np.min(df.values)
+            maxima = np.max(df.values)
+            mid_val = (maxima - minima)/2 + minima
+            norm = MidpointNormalize(vcenter=mid_val, vmin=minima, vmax=maxima)
+            mapper = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+            self.cbar_data[key]['mapper'] = mapper
+            self.cbar_data[key]['norm'] = norm
         if which_side in ['left', 'right']:
             self.imshow(df, ax, cmap=cmap, *args)
         else:
@@ -380,29 +388,38 @@ class nheatmap():
         self.widths.append(3+self.showRdendrogram*self.rdendrogram_size)
         self.heights.append(3+self.showCdendrogram*self.cdendrogram_size)
         if self.show_cbar:
-            self.widths.append(0.5)
+            self.widths.append(0.25)
             self.widths.append(1)
 
     def hide_extra_grid(self, ax):
         ax.set_visible(False)
 
-    def plot_cbar(self, stored:dict, ax, discrete, key, s=100, *args):
+    def plot_cbar(self, stored:dict, ax, discrete, key, s=100, fmt=None, *args):
         if discrete:
+            cbar_height = self.figsize[0] * self.heights[-1] / sum(self.heights)
+            adjusted_s = s * (cbar_height/10)**2
+            length = len(stored['ulab'])
+            ncol = int(length / 10)
             for i, u in enumerate(stored['ulab']):
                 val = stored['tdict'][u]
-                ax.scatter(0, i, color=stored['mapper'].to_rgba(val), s=s)
-                ax.text(0+0.05, i, u, ha='left', va='center')
-            ax.text(0.5, 1.0, key, ha='center', va='center', transform=ax.transAxes)
-            ax.set_ylim(-10, i+1)
-            # ax.set_title(key, zorder=10)
+                ax.scatter([], [], color=stored['mapper'].to_rgba(val),
+                        s=adjusted_s, label=u)
+                ax.patch.set_alpha(0)
+            ax.legend(frameon=False, title=key, ncol=ncol, loc='center',
+                    fontsize=self.sub_title_font_size,
+                    bbox_to_anchor=(1, 0.5), scatterpoints=1, markerscale=1)
         else:
-            pass
+            cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt)
+            ax.set_title(key, ha='left', va='center',
+                    fontsize=self.sub_title_font_size, zorder=999)
+            ax.patch.set_alpha(0)
+            ax.set_xlim(-1, 1)
         ax.grid(False)
         self.remove_border(ax)
         self.remove_ticks(ax)
 
     def set_up_cbar(self):
-        fmt = FormatScalarFormatter("%.1f")
+        fmt = FormatScalarFormatter("%.2g")
         self.caxs = {}
 
         ## colorbar plots
@@ -412,10 +429,11 @@ class nheatmap():
                     self.caxs[k]= self.plots[-1][-2]
                     divider_cbar = make_axes_locatable(self.caxs[k])
                 else:
-                    self.caxs[k] = divider_cbar.new_vertical(size='100%', pad=0.05)
+                    self.caxs[k] = divider_cbar.new_vertical(size='100%',
+                            pad=self.figsize[0]/20 * 1)
                     self.fig.add_axes(self.caxs[k], label=k)
                 self.plot_cbar(self.cbar_data[k], self.caxs[k], discrete=False,
-                        key=k)
+                        key=k, fmt=fmt)
         else:
             self.plots[-1][-2].set_visible(False)
 
@@ -426,33 +444,11 @@ class nheatmap():
                     self.caxs[k]= self.plots[-1][-1]
                     divider_legend = make_axes_locatable(self.caxs[k])
                 else:
-                    self.caxs[k] = divider_legend.new_vertical(size='100%', pad=0.05)
+                    self.caxs[k] = divider_legend.new_vertical(size='100%',
+                            pad=self.figsize[0]/20 * 1)
                     self.fig.add_axes(self.caxs[k], label=k)
                 self.plot_cbar(self.legend_data[k], self.caxs[k], discrete=True,
                         key=k)
         else:
             self.plots[-1][-1].set_visible(False)
-
-            # cbar = self.fig.colorbar(artist, cax=self.caxs[k], format=fmt)
-        # self.caxs['test1'].scatter([0], [0], color='r')
-        # self.caxs['test2'].scatter([0], [0], color='b')
-        # self.caxs['test3'].scatter([0], [0], color='g')
-
-        # for i, k in enumerate(['0', '1']):
-            # self.caxs[k] = divider.append_axes('bottom', size='100%', pad=0.05)
-            # self.fig.add_axes(self.caxs[k])
-            # divider = make_axes_locatable(self.caxs[k])
-        # plot_cbar = True
-        # if plot_cbar == True:
-            # fmt = FormatScalarFormatter("%.1f")
-            # divider = make_axes_locatable(ax)
-            # cax = divider.append_axes('right', size='5%', pad=0.05)
-            # cbar = fig.colorbar(artist, cax=cax, format=fmt)
-            # if np.max(cbar.get_ticks()) > 100:
-                # cbar.formatter.set_powerlimits((0, 0))
-            # cbar.ax.yaxis.set_offset_position('left')
-            # cbar.ax.tick_params(labelsize=(fontsize - 2))
-            # if legend_title is not None:
-                # cbar.ax.set_title(legend_title, fontsize=(fontsize-2))
-            # cbar.update_ticks()
 
