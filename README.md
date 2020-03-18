@@ -29,3 +29,6 @@ Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap
 ## Usage
     Check [here](https://nbviewer.jupyter.org/github/xuesoso/nheatmap/blob/master/tutorial.ipynb) for a tutorial on usage.
 
+## Other plotting tools
+    **Other plotting tool made by me**
+    -[DensityPlot](https://github.com/xuesoso/DensityPlot)
