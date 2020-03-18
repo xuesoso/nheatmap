@@ -8,6 +8,9 @@ from matplotlib.colors import ListedColormap, Normalize
 import matplotlib.ticker as mticker
 from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from packaging import version
+__matplotlib_version__ = mpl.__version__
+__below__ = version.parse(__matplotlib_version__) < version.parse("3.1.0")
 
 class MidpointNormalize(Normalize):
     def __init__(self, vmin=None, vmax=None, vcenter=None, clip=False):
@@ -314,7 +317,7 @@ class nheatmap():
         if title:
             if which_side in ['left', 'right']:
                 ax.set_title(title, fontsize=self.sub_title_font_size,
-                        rotation=rotation)
+                        rotation=rotation, va='bottom')
             else:
                 ax.yaxis.set_label_position('right')
                 if which_side == 'top':
@@ -409,7 +412,11 @@ class nheatmap():
                     fontsize=self.sub_title_font_size,
                     bbox_to_anchor=(1, 0.5), scatterpoints=1, markerscale=1)
         else:
-            cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt)
+            if __below__:
+                stored['mapper'].set_array([])
+                cb = mpl.colorbar.ColorbarBase(ax=ax, cmap=stored['cmap'], norm=stored['norm'])
+            else:
+                cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt)
             cb.ax.text(0, 1.1, key, ha='left', va='center',
                     fontsize=self.sub_title_font_size)
             ax.patch.set_alpha(0)

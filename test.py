@@ -1,15 +1,9 @@
-```python
-%matplotlib inline
-%load_ext autoreload
-%autoreload 2
 import pandas as pd
 import numpy as np
 import scripts, sklearn.decomposition, plot, sklearn.cluster
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-```
 
-```python
 df = scripts.simulate_data(nrows=120)
 nrows, ncols = np.shape(df)
 pc = sklearn.decomposition.PCA().fit(df)
@@ -28,5 +22,4 @@ g = plot.nheatmap(data=df, dfr=dfr, dfc=dfc, figsize=(10, 15),
 g.hcluster()
 fig, plots = g.run()
 fig.savefig('./examples/example1.png', bbox_inches='tight')
-```
 

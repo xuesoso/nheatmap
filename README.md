@@ -6,8 +6,13 @@ Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap
 ![Example](./examples/example1.png)
 
 ## Requirements
+    -Currently only
 
 ## Installation
+    For now, use git clone and add the git package to the python path. Will be adding this to pypi package manager very soon.
+    ```bash
+    git clone https://github.com/xuesoso/nheatmap
+    ```
 
 ## Usage
 
