@@ -27,5 +27,10 @@ Include the cloned directory as part of the python path
 ## Usage
 - [Check here](https://github.com/xuesoso/nheatmap/blob/master/tutorial.ipynb) for a tutorial on usage.
 
+## To-do
+- Documentation of the code
+- Cutting of heatmap
+- Bottom panel plots
+
 ## Other plotting tools
 - [DensityPlot](https://github.com/xuesoso/DensityPlot)
