@@ -31,6 +31,7 @@ Include the cloned directory as part of the python path
 - Documentation of the code
 - Cutting of heatmap
 - Bottom panel plots
+- Enable usage of AnnData structure
 
 ## Other plotting tools
 - [DensityPlot](https://github.com/xuesoso/DensityPlot)
