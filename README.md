@@ -1,6 +1,6 @@
 ![Logo](logo.png)
 
-# Bag of STARs
+# nheatmap
 
 ## Requirements
 
