@@ -410,10 +410,11 @@ class nheatmap():
                     bbox_to_anchor=(1, 0.5), scatterpoints=1, markerscale=1)
         else:
             cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt)
-            ax.set_title(key, ha='left', va='center',
-                    fontsize=self.sub_title_font_size, zorder=999)
+            cb.ax.text(0, 1.1, key, ha='left', va='center',
+                    fontsize=self.sub_title_font_size)
             ax.patch.set_alpha(0)
             ax.set_xlim(-1, 1)
+            ax.set_ylim(0, 1.5)
         ax.grid(False)
         self.remove_border(ax)
         self.remove_ticks(ax)
