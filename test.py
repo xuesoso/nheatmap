@@ -23,7 +23,7 @@ dfc['PC score 2'] = pc.components_[1]
 cmaps={'cell cluster':'Paired', 'PC1':'RdYlGn', 'gene cluster':'inferno',
         'PC score':'gist_heat'}
 
-g = plot.nheatmap(data=df, dfr=dfr, dfc=dfc, figsize=(8, 15),
+g = plot.nheatmap(data=df, dfr=dfr, dfc=dfc, figsize=(10, 15),
         cmaps=cmaps, linewidths=0, showxticks=False)
 g.hcluster()
 fig, plots = g.run()
