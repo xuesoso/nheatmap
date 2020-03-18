@@ -5,7 +5,7 @@ from nheatmap import nhm, scripts
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-df = scripts.simulate_data(nrows=120)
+df = scripts.simulate_data(nrows=60)
 nrows, ncols = np.shape(df)
 pc = sklearn.decomposition.PCA().fit(df)
 dfr = pd.DataFrame(pc.transform(df)[:, 0], index=['sample '+str(x) for x in np.arange(1, nrows+1)],
@@ -21,8 +21,8 @@ dfsmall = df.iloc[:20, :10]
 dfrsmall = dfr.iloc[:20]
 dfcsmall = dfr.iloc[:10]
 
-g = nhm(data=df, dfr=dfr, dfc=dfc, figsize=(10, 15),
-        cmaps=cmaps, linewidths=0, showxticks=False)
+g = nhm(data=df, dfr=dfr, dfc=dfc, figsize=(10, 10),
+        cmaps=cmaps, linewidths=0, showxticks=False, showyticks=False)
 g.hcluster()
 fig, plots = g.run()
 fig.savefig('./examples/example1.png', bbox_inches='tight')
