@@ -5,13 +5,13 @@ nheatmap Package Changes Log
 
 Release Summary:
 
-0.1.0, March 18, 2020
+0.1.1, March 18, 2020
     First release.
 
 Details of each release follow, from most recent to oldest.
 
 -------------------------------------------------------------------------------------
 
-Release 0.1.0, March 18, 2020
+Release 0.1.1, March 18, 2020
 
 First release. This plotting package is inspired by pheatmap in R. It aims to enable multi-level heatmap with the option to perform hierarchical clustering. The goal is to develop a package that is both intuitive in usage and extensive in plotting configuration.
