@@ -21,7 +21,7 @@ dfc = pd.DataFrame(pc.components_[0], index=['gene '+str(x) for x in
 dfc['gene cluster'] = sklearn.cluster.KMeans(n_clusters=10).fit_predict(df.T).astype(str)
 dfc['PC score 2'] = pc.components_[1]
 cmaps={'cell cluster':'Paired', 'PC1':'RdYlGn', 'gene cluster':'inferno',
-        'PC score':'gist_heat'}
+        'PC score':'gist_heat', 'PC score 2':'rainbow'}
 
 g = plot.nheatmap(data=df, dfr=dfr, dfc=dfc, figsize=(10, 15),
         cmaps=cmaps, linewidths=0, showxticks=False)
