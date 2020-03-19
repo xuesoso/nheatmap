@@ -65,11 +65,12 @@ class FormatScalarFormatter(mticker.ScalarFormatter):
 class nheatmap():
     def __init__(self, data:pd.DataFrame, lrows=None, rrows=None, tcolumns=None,
             figsize=(4, 6), bcolumns=None, sub_title_font_size=10, widths=None,
-            heights=None, dfr=None, dfc=None, edgecolors='k', border=True,
-            linewidths=1, wspace=0.1, hspace=0.05, xrot=45, yrot=0,
-            cmapCenter='viridis', cmapDiscrete='tab20b',
-            rdendrogram_size=1, cdendrogram_size=1, srot=0, cmaps={},
-            showxticks=None, showyticks=None, show_cbar=True):
+            heights=None, dfr=None, dfc=None, edgecolors='k', rorder=None,
+            corder=None, rorder_ascending=True, corder_ascending=True,
+            border=True, linewidths=1, wspace=0.1, hspace=0.05, xrot=45, yrot=0,
+            cmapCenter='viridis', cmapDiscrete='tab20b', rdendrogram_size=1,
+            cdendrogram_size=1, srot=0, cmaps={}, showxticks=None,
+            showyticks=None, show_cbar=True):
         """
         ## Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap with the option to perform hierarchical clustering. The goal is to develop a python plotting package that is both intuitive in usage and extensive in plotting configuration.
 
@@ -140,8 +141,20 @@ class nheatmap():
         self.linewidths = linewidths
         self.hspace = hspace
         self.wspace = wspace
-        self.rorder = np.arange(self.size[0])
-        self.corder = np.arange(self.size[1])
+        if rorder is None:
+            self.rorder = np.arange(self.size[0])
+        elif type(rorder) is str:
+            assert rorder in self.dfr.columns, '{:} is not a valid column value of left dataframe'.format(rorder)
+            self.rorder = np.argsort(self.dfr[rorder].values)[::rorder_ascending]
+        else:
+            self.rorder = rorder
+        if corder is None:
+            self.corder = np.arange(self.size[1])
+        elif type(corder) is str:
+            assert corder in self.dfc.columns, '{:} is not a valid column value of top dataframe'.format(corder)
+            self.corder = np.argsort(self.dfc[corder].values)[::corder_ascending]
+        else:
+            self.corder = corder
         self.xrot = xrot
         self.yrot = yrot
         self.showRdendrogram = False
