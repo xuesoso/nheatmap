@@ -10,6 +10,7 @@ setuptools.setup(
     license='LICENSE',
     description='A painless and customizable tool to generate heatmap with hiearchical clustering results and additional data bars.',
     long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     keywords = ['heatmap', 'hiearchical clustering', 'neat heatmap'],
     install_requires=[
        "matplotlib >= 3.0.3",

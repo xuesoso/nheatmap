@@ -28,7 +28,7 @@ Include the cloned directory as part of the python path
 - [Check here](https://github.com/xuesoso/nheatmap/blob/master/tutorial.ipynb) for a tutorial on usage.
 
 ## To-do
-- [x] Documentation of the code
+- [X] Documentation of the code
 - [ ] Cutting of heatmap
 - [ ] Bottom panel plots
 - [ ] Enable usage of AnnData structure
