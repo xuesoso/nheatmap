@@ -143,24 +143,36 @@ class nheatmap():
         self.wspace = wspace
         if rorder is None:
             self.rorder = np.arange(self.size[0])
+            self._default_rorder = self.rorder.copy()
         elif type(rorder) is str:
             assert rorder in self.dfr.columns, '{:} is not a valid column value of left dataframe'.format(rorder)
             self.rorder = np.argsort(self.dfr[rorder].values)[::rorder_ascending]
+            self._default_rorder = self.rorder.copy()
         else:
             self.rorder = rorder
+            self._default_rorder = self.rorder.copy()
         if corder is None:
             self.corder = np.arange(self.size[1])
+            self._default_corder = self.corder.copy()
         elif type(corder) is str:
             assert corder in self.dfc.columns, '{:} is not a valid column value of top dataframe'.format(corder)
             self.corder = np.argsort(self.dfc[corder].values)[::corder_ascending]
+            self._default_corder = self.corder.copy()
         else:
             self.corder = corder
+            self._default_corder = self.corder.copy()
         self.xrot = xrot
         self.yrot = yrot
         self.showRdendrogram = False
         self.showCdendrogram = False
         self.cdendrogram_size = rdendrogram_size
         self.rdendrogram_size = cdendrogram_size
+        self.rdendrogram_args = {}
+        self.cdendrogram_args = {}
+        self.cdendrogram_args = {}
+        self.center_args = {}
+        self.left_args = {}
+        self.top_args = {}
         self.side_plot_label_rot = srot
         self.cmaps = cmaps
         self.show_cbar = show_cbar
@@ -272,13 +284,16 @@ class nheatmap():
         self.remove_ticks(ax)
         return dendrogram
 
-    def imshow(self, df, ax, cmap, *args):
+    def imshow(self, df, ax, cmap, norm=None, **args):
         ax.pcolormesh(df, cmap=cmap, edgecolors=self.edgecolors,
-                linewidths=self.linewidths, *args)
+                linewidths=self.linewidths, norm=norm, **args)
 
     def dtype_numerical(self, df):
         return df.dtypes in ['float64', 'float32', 'int64', 'int32', 'int',
                 'float']
+
+    def dtype_bool(self, df):
+        return df.dtypes in ['bool']
 
     def map_discrete_to_numeric(self, df, cmap='tab20b', vmin=None, vmax=None):
         """
@@ -305,8 +320,27 @@ class nheatmap():
         mapped_df = df.replace(tick_dictionary)
         return mapped_df, mapper, unique_labels, tick_dictionary
 
-    def make_center_plot(self, df, ax, cmap=None, *args):
-        artist = self.imshow(df, ax, cmap=cmap, *args)
+    def make_center_plot(self, df, ax, config:dict, cmap=None, **args):
+        if 'min' not in config:
+            minima = np.min(df.values)
+        else:
+            minima = config['min']
+        if 'max' not in config:
+            maxima = np.max(df.values)
+        else:
+            maxima = config['max']
+        if 'mid' not in config:
+            mid_val = (maxima - minima)/2 + minima
+        else:
+            mid_val = config['mid']
+        norm = MidpointNormalize(vcenter=mid_val, vmin=minima, vmax=maxima)
+        mapper = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+        self.cbar_data['__center__'] = {}
+        self.cbar_data['__center__']['norm'] = norm
+        self.cbar_data['__center__']['mapper'] = mapper
+        self.cbar_data['__center__']['df'] = df
+        self.cbar_data['__center__']['cmap'] = cmap
+        artist = self.imshow(df, ax, cmap=cmap, norm=norm, **args)
         ax.grid(False)
         if self.border is False:
             self.remove_border(ax)
@@ -362,11 +396,11 @@ class nheatmap():
         if row_cluster:
             self.rlinkage, self.rorder = self.make_dendrogram(self.data, **args)
         else:
-            self.rorder = np.arange(self.size[0])
+            self.rorder = self._default_rorder
         if col_cluster:
             self.clinkage, self.corder = self.make_dendrogram(self.data.T, **args)
         else:
-            self.corder = np.arange(self.size[1])
+            self.corder = self._default_corder
 
     def make_side_plots(self, D, ax, which_side, title=None, label=None,
             key=None, *args):
@@ -378,6 +412,8 @@ class nheatmap():
             df = pd.DataFrame(D)
         else:
             df = D
+        if self.dtype_bool(D):
+            df = df.astype(str)
         numerical_dtype = self.dtype_numerical(D)
         if numerical_dtype is False:
             if cmap is None:
@@ -431,7 +467,9 @@ class nheatmap():
             else:
                 ax.set_title(label, fontsize=self.sub_title_font_size)
 
-    def run(self, rdendrogram_args={}, cdendrogram_args={}):
+    def run(self, rdendrogram_args={}, cdendrogram_args={}, center_args={},
+            left_args={}, top_args={}, hix=[], hiy=[], hix_args={}, hiy_args={},
+            fn='', save='', dpi=500):
         """
         function to generate the figure.
 
@@ -444,7 +482,18 @@ class nheatmap():
             A dictionary with additional parameters for when plotting the column
             dendrogram. Available parameters of 'scipy.hierarchy.dendrogram'.
         """
-
+        if fn != '':
+            save = fn
+        if len(rdendrogram_args) > 0:
+            self.rdendrogram_args = rdendrogram_args
+        if len(cdendrogram_args) > 0:
+            self.cdendrogram_args = cdendrogram_args
+        if len(center_args) > 0:
+            self.center_args = center_args
+        if len(left_args) > 0:
+            self.left_args = left_args
+        if len(top_args) > 0:
+            self.top_args = top_args
         self.determine_grid_sizes()
         self.fig = plt.figure(constrained_layout=False, figsize=self.figsize)
         ncols, nrows = len(self.widths), len(self.heights)
@@ -477,16 +526,18 @@ class nheatmap():
                     which_side='top', title=c, key=c)
         if self.showRdendrogram:
             self.rdendrogram = self.plot_dendrogram(self.rlinkage,
-                    ax=self.plots[-1][0], which_side='left', **rdendrogram_args)
+                    ax=self.plots[-1][0], which_side='left', **self.rdendrogram_args)
         if self.showCdendrogram:
             self.cdendrogram = self.plot_dendrogram(self.clinkage,
                     ax=self.plots[0][-1-self.show_cbar*2], which_side='top',
-                    **cdendrogram_args)
+                    **self.cdendrogram_args)
         self.make_center_plot(df=self.data.iloc[self.rorder, self.corder],
                 ax=self.plots[center_plot[0]][center_plot[1]],
-                cmap=self.default_cmaps['center'])
+                cmap=self.default_cmaps['center'], config=self.center_args)
         if self.show_cbar:
             self.set_up_cbar()
+        if save != '':
+            self.fig.savefig(save, bbox_inches='tight', dpi=dpi)
         return self.fig, self.plots
 
     def determine_grid_sizes(self):
@@ -553,8 +604,13 @@ class nheatmap():
                 cb = mpl.colorbar.ColorbarBase(ax=ax, cmap=stored['cmap'], norm=stored['norm'])
             else:
                 cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt)
-            cb.ax.text(0, 1.1, key, ha='left', va='center',
-                    fontsize=self.sub_title_font_size)
+            if key not in ['__center__']:
+                cb.ax.text(0, 1.1, key, ha='left', va='center',
+                        fontsize=self.sub_title_font_size)
+            else:
+                if 'cbar_title' in self.center_args:
+                    cb.ax.text(0, 1.1, self.center_args['cbar_title'], ha='left',
+                            va='center', fontsize=self.sub_title_font_size)
             ax.patch.set_alpha(0)
             ax.set_xlim(-1, 1)
             ax.set_ylim(0, 1.5)
