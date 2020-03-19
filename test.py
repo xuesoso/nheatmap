@@ -25,5 +25,5 @@ g = nhm(data=df, dfr=dfr, dfc=dfc, figsize=(10, 10),
         cmaps=cmaps, linewidths=0, showxticks=False, showyticks=False)
 g.hcluster()
 fig, plots = g.run()
-fig.savefig('./examples/example1.png', bbox_inches='tight')
+fig.savefig('./examples/example2.png', bbox_inches='tight')
 
