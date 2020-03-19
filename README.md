@@ -18,7 +18,7 @@ Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap
 pip install nheatmap
 ```
 
-- Option 1 via github:
+- Option 2 via github:
 ```bash
 git clone https://github.com/xuesoso/nheatmap
 ```
@@ -28,10 +28,11 @@ Include the cloned directory as part of the python path
 - [Check here](https://github.com/xuesoso/nheatmap/blob/master/tutorial.ipynb) for a tutorial on usage.
 
 ## To-do
-- Documentation of the code
-- Cutting of heatmap
-- Bottom panel plots
-- Enable usage of AnnData structure
+- [x] Documentation of the code
+- [ ] Cutting of heatmap
+- [ ] Bottom panel plots
+- [ ] Enable usage of AnnData structure
+- [ ] Highlight individual rows / columns
 
 ## Other plotting tools
 - [DensityPlot](https://github.com/xuesoso/DensityPlot)

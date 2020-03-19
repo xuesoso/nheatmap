@@ -67,26 +67,64 @@ class nheatmap():
             figsize=(4, 6), bcolumns=None, sub_title_font_size=10, widths=None,
             heights=None, dfr=None, dfc=None, edgecolors='k', border=True,
             linewidths=1, wspace=0.1, hspace=0.05, xrot=45, yrot=0,
-            cmapCenter='viridis', cmapDiscrete='tab20b', col_cluster=False,
-            row_cluster=False, showRdendrogram=False, showCdendrogram=False,
+            cmapCenter='viridis', cmapDiscrete='tab20b',
             rdendrogram_size=1, cdendrogram_size=1, srot=0, cmaps={},
             showxticks=None, showyticks=None, show_cbar=True):
         """
-        ## Modified based on density2d from FlowCal package.
-        Plot a 2D density plot from two channels of a flow cytometry data set.
+        ## Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap with the option to perform hierarchical clustering. The goal is to develop a python plotting package that is both intuitive in usage and extensive in plotting configuration.
 
         Parameters
         ----------
-        data : numpy array
-            A N x 2 data array to plot. An alternative acceptable input is to
-            define ```x``` and ```y``` values.
+        data : pandas DataFrame
+            The frame that stores values to plot for the center heatmap.
+            Hierarchical clustering is also performed on this dataframe.
+            In the future, will allow AnnData object.
+        dfr : pandas DataFrame, optional
+            The frame that stores values for the left side-plots. Column values
+            must be unique and match the key provided in 'cmap', if provided.
+        dfc : pandas DataFrame, optional
+            The frame that stores values for the top side-plots. Column values
+            must be unique and match the key provided in 'cmap', if provided.
+        lrows : list, numpy array, optional
+            The the columns keys to plot for the left side-plots. By
+            default, use all columns of 'dfr'
+        tcolumns : list, numpy array, optional
+            The the columns keys to plot for the top side-plots. By
+            default, use all columns of 'dfc'
+        figsize : set, optional
+            The figure size. Defaults to '(4, 6)'
+        xrot : float, optional
+            The degree to which the xaxis ticklabels of the center heatmap
+            are rotated. Defaults to '45' degree.
+        yrot : float, optional
+            The degree to which the yaxis ticklabels of the center heatmap
+            are rotated. Defaults to '0' degree.
+        srot : float, optional
+            The degree to which the titles of the side plots are rotated.
+            Defaults to '0' degree.
+        cmapCenter : str, optional
+            The name of colormap to use for the center heatmap. Defaults to
+            'viridis'.
+        cmapDiscrete : str, optional
+            The name of colormap to use for discrete values in side plots.
+            Defaults to 'tab20b'
+        cmaps : dict, optional
+            A dictionary with keys that correspond to the column values of side
+            plots frames. The value of the dictionary dictates the name of the
+            colormap to use for the corresponding column values.
+        showxticks : bool, optional
+            Boolean to set whether the xtick labels of the center plot should
+            be shown.
+        showyticks : bool, optional
+            Boolean to set whether the ytick labels of the center plot should
+            be shown.
+        show_cbar : bool, optional
+            Boolean to set whether legends and colorbars should be shown on the
+            right handside of the figure. Defaults to 'True'.
 
         Other parameters
         ----------------
-        sigma : float, optional
-            The sigma parameter for the Gaussian kernel to use when smoothing.
         """
-        # self.raw_data = data
         self.data = data
         self.size = np.shape(data)
         self.figsize = figsize
@@ -106,16 +144,17 @@ class nheatmap():
         self.corder = np.arange(self.size[1])
         self.xrot = xrot
         self.yrot = yrot
-        self.row_cluster = False
-        self.col_cluster = False
-        self.showRdendrogram = showRdendrogram
-        self.showCdendrogram = showCdendrogram
+        self.showRdendrogram = False
+        self.showCdendrogram = False
         self.cdendrogram_size = rdendrogram_size
         self.rdendrogram_size = cdendrogram_size
         self.side_plot_label_rot = srot
         self.cmaps = cmaps
         self.show_cbar = show_cbar
         self.default_cmaps = {'center':cmapCenter, 'discrete':cmapDiscrete}
+        ## I set up some common sense strategy to hide xticks or yticks labels
+        ## when the number of labels to show is above 100. Of course this can be
+        ## override by setting 'showxticks' or 'showyticks'.
         if showxticks is None:
             self.showxticks = self.size[1] <= 100
         else:
@@ -151,8 +190,25 @@ class nheatmap():
         if '__center__' not in self.default_cmaps:
             self.default_cmaps['center'] = 'vlag'
 
-    def make_dendrogram(self, df, ax=None, method='average',
-            metric='euclidean'):
+    def make_dendrogram(self, df, method='average', metric='euclidean'):
+        """
+        function to only generate the linkage tree and dendrogram.
+        I call 'hierarchy.dendrogram' so that I know how to reorder the data.
+        A separate function called 'plot_dendrogram' is the function responsible
+        for actually plotting the dendrogram.
+
+        Parameters
+        ----------
+        df : pandas DataFrame
+            The dataframe to make the dendrogram out of.
+        method : str, optional
+            The clustering method. See 'hierarchy.linkage' documentation for
+            available options. Defaults to 'average'.
+        metric : str, optional
+            The distance metric to cluster the values. See 'hierarchy.linkage'
+            documentation for available options. Defaults to 'euclidean'.
+
+        """
         linkage = hierarchy.linkage(df, method=method, metric=metric)
         dendrogram = hierarchy.dendrogram(linkage, no_plot=True)
         reorder = dendrogram['leaves']
@@ -177,9 +233,12 @@ class nheatmap():
     def plot_dendrogram(self, linkage, ax, which_side, **args):
         if 'color_threshold' not in args:
             link_color_func = lambda k: 'k'
-        dendrogram = hierarchy.dendrogram(linkage, ax=ax,
-                orientation=which_side, no_labels=True,
-                link_color_func=link_color_func, **args)
+            dendrogram = hierarchy.dendrogram(linkage, ax=ax,
+                    orientation=which_side, no_labels=True,
+                    link_color_func=link_color_func, **args)
+        else:
+            dendrogram = hierarchy.dendrogram(linkage, ax=ax,
+                    orientation=which_side, no_labels=True, **args)
         number_of_leaves = len(dendrogram['leaves'])
         max_dependent_coord = max(map(max, dendrogram['dcoord']))
         min_dependent_coord = min(map(max, dendrogram['dcoord']))
@@ -209,6 +268,11 @@ class nheatmap():
                 'float']
 
     def map_discrete_to_numeric(self, df, cmap='tab20b', vmin=None, vmax=None):
+        """
+        function to transform each unique categorical value to a scalar value.
+        This allows us to make a legend which can map each unique category to a
+        color based on the 'ScalarMappable' function.
+        """
         mapped_df = pd.DataFrame(0, index=df.index, columns=df.columns)
         vals = df.values.flatten()
         unique_labels = sorted(set(vals))
@@ -250,7 +314,30 @@ class nheatmap():
             length=0)          # labels along the bottom edge are off
 
     def hcluster(self, row_cluster=True, col_cluster=True,
-            showRdendrogram=None, showCdendrogram=None):
+            showRdendrogram=None, showCdendrogram=None, **args):
+        """
+        function to perform hierarchical clustering on the center data.
+
+        Parameters
+        ----------
+        row_cluster : bool, optional
+            Boolean to set whether to run 'hcluster' on the rows of the center
+            data. Defaults to 'True'
+        col_cluster : bool, optional
+            Boolean to set whether to run 'hcluster' on the columns of the
+            center data. Defaults to 'True'
+        showRdendrogram : bool, optional
+            Boolean to set whether to run 'hcluster' on the rows of the
+            center data. Defaults to 'None', which will set 'showRdendrogram' to
+            take the same value as 'row_cluster'
+        showCdendrogram : bool, optional
+            Boolean to set whether to run 'hcluster' on the columns of the
+            center data. Defaults to 'None', which will set 'showCdendrogram' to
+            take the same value as 'col_cluster'
+        args : optional
+            Additional parameters passed directly to 'make_dendrogram'.
+        """
+
         if showRdendrogram is not None:
             self.showRdendrogram = showRdendrogram
         else:
@@ -260,13 +347,11 @@ class nheatmap():
         else:
             self.showCdendrogram = col_cluster
         if row_cluster:
-            self.rlinkage, self.rorder = self.make_dendrogram(self.data,
-                    method='single', metric='euclidean')
+            self.rlinkage, self.rorder = self.make_dendrogram(self.data, **args)
         else:
             self.rorder = np.arange(self.size[0])
         if col_cluster:
-            self.clinkage, self.corder = self.make_dendrogram(self.data.T,
-                    method='single', metric='euclidean')
+            self.clinkage, self.corder = self.make_dendrogram(self.data.T, **args)
         else:
             self.corder = np.arange(self.size[1])
 
@@ -334,6 +419,19 @@ class nheatmap():
                 ax.set_title(label, fontsize=self.sub_title_font_size)
 
     def run(self, rdendrogram_args={}, cdendrogram_args={}):
+        """
+        function to generate the figure.
+
+        Parameters
+        ----------
+        rdendrogram_args : dict, optional
+            A dictionary with additional parameters for when plotting the row
+            dendrogram. Available parameters of 'scipy.hierarchy.dendrogram'.
+        cdendrogram_args : dict, optional
+            A dictionary with additional parameters for when plotting the column
+            dendrogram. Available parameters of 'scipy.hierarchy.dendrogram'.
+        """
+
         self.determine_grid_sizes()
         self.fig = plt.figure(constrained_layout=False, figsize=self.figsize)
         ncols, nrows = len(self.widths), len(self.heights)
@@ -379,6 +477,9 @@ class nheatmap():
         return self.fig, self.plots
 
     def determine_grid_sizes(self):
+        """
+        function to determine number of subplots and individual subplot sizes.
+        """
         ratio = self.figsize[0] / self.figsize[1]
         min_width = 3/self.figsize[0]*self.min_side_width
         min_height = 3/self.figsize[1]*self.min_side_height
@@ -398,6 +499,27 @@ class nheatmap():
         ax.set_visible(False)
 
     def plot_cbar(self, stored:dict, ax, discrete, key, s=100, fmt=None, *args):
+        """
+        function to generate the colorbar and legends.
+
+        Parameters
+        ----------
+        stored : dict
+            The backend data on the entry values, colormap, normalized scale to
+            use when generating the colorbar / legends.
+        ax : matplotlib axes
+            The subplot axis to to plot the colorbar / legends on.
+        discrete : bool
+            Whether the entry values are categorical. If they are categorical,
+            then 'discrete' should be 'True', otherwise, they are assumed to be
+            continuous and thus 'discrete' should be False.
+        key : str
+            The title of the current colorbar / legend. Should correspond to the
+            column value of the current side-plot data.
+        fmt : mtick.Formatter
+            For formatting the tick values of the continuous colorbar.
+        """
+
         if discrete:
             cbar_height = self.figsize[0] * self.heights[-1] / sum(self.heights)
             adjusted_s = s * (cbar_height/10)**2
@@ -428,6 +550,14 @@ class nheatmap():
         self.remove_ticks(ax)
 
     def set_up_cbar(self):
+        """
+        function to set up the colobar subplots. We iterate through each of the
+        side-plots that are shown, and determine where to place them.
+        The general configuration that I have settled on is to carve the
+        right side of the figure into two vertical subplots. Left half of the
+        subplot is reserved for continuous colorbar, right half of the subplot
+        is reserved for discrete colorbar.
+        """
         fmt = FormatScalarFormatter("%.2g")
         self.caxs = {}
 
