@@ -68,9 +68,9 @@ class nheatmap():
             heights=None, dfr=None, dfc=None, edgecolors='k', rorder=None,
             corder=None, rorder_ascending=True, corder_ascending=True,
             border=True, linewidths=1, wspace=0.1, hspace=0.05, xrot=45, yrot=0,
-            cmapCenter='viridis', cmapDiscrete='tab20b', rdendrogram_size=1,
-            cdendrogram_size=1, srot=0, cmaps={}, showxticks=None,
-            showyticks=None, show_cbar=True):
+            tick_size=None, cmapCenter='viridis', cmapDiscrete='tab20b',
+            rdendrogram_size=1, cdendrogram_size=1, srot=0, cmaps={},
+            showxticks=None, showyticks=None, show_cbar=True):
         """
         ## Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap with the option to perform hierarchical clustering. The goal is to develop a python plotting package that is both intuitive in usage and extensive in plotting configuration.
 
@@ -130,6 +130,7 @@ class nheatmap():
         self.size = np.shape(data)
         self.figsize = figsize
         self.sub_title_font_size = sub_title_font_size
+        self.tick_size = tick_size
         self.widths = widths
         self.heights = heights
         self.dfr = dfr
@@ -346,12 +347,14 @@ class nheatmap():
             self.remove_border(ax)
         if self.showxticks:
             ax.set_xticks(np.arange(0.5, np.shape(df)[1]+0.5, 1))
-            ax.set_xticklabels(df.columns.values, rotation=self.xrot)
+            ax.set_xticklabels(df.columns.values, rotation=self.xrot,
+                    fontsize=self.tick_size)
         else:
             ax.set_xticks([])
         if self.showyticks:
             ax.set_yticks(np.arange(0.5, np.shape(df)[0]+0.5, 1))
-            ax.set_yticklabels(df.index.values, rotation=self.yrot)
+            ax.set_yticklabels(df.index.values, rotation=self.yrot,
+                    fontsize=self.tick_size, va='center')
             ax.yaxis.tick_right()
         else:
             ax.set_yticks([])
