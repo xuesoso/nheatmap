@@ -112,7 +112,8 @@ class nheatmap():
         cmaps : dict, optional
             A dictionary with keys that correspond to the column values of side
             plots frames. The value of the dictionary dictates the name of the
-            colormap to use for the corresponding column values.
+            colormap or a dictionary that maps the discrete values to a color code
+            to use for the corresponding column values.
         showxticks : bool, optional
             Boolean to set whether the xtick labels of the center plot should
             be shown.
@@ -175,7 +176,7 @@ class nheatmap():
         self.left_args = {}
         self.top_args = {}
         self.side_plot_label_rot = srot
-        self.cmaps = cmaps
+        self.cmaps = self.set_up_cmap(cmaps)
         self.show_cbar = show_cbar
         self.default_cmaps = {'center':cmapCenter, 'discrete':cmapDiscrete}
         ## I set up some common sense strategy to hide xticks or yticks labels
@@ -210,11 +211,16 @@ class nheatmap():
             self.tcolumns = tcolumns
         self.bcolumns = bcolumns
 
-    def set_up_cmap(self):
-        if '__discrete__' not in self.default_cmaps:
-            self.default_cmaps['discrete'] = 'tab20b'
-        if '__center__' not in self.default_cmaps:
-            self.default_cmaps['center'] = 'vlag'
+    def set_up_cmap(self, cmaps):
+        processed_cmap = {}
+        for key in cmaps:
+            if type(cmaps[key]) is dict:
+                cmap = cmaps[key]
+                processed_cmap[key] = ListedColormap([cmap[x] for x in
+                    sorted(set(cmap.keys()))])
+            else:
+                processed_cmap[key] = cmaps[key]
+        return processed_cmap
 
     def make_dendrogram(self, df, method='average', metric='euclidean'):
         """
@@ -301,6 +307,8 @@ class nheatmap():
         function to transform each unique categorical value to a scalar value.
         This allows us to make a legend which can map each unique category to a
         color based on the 'ScalarMappable' function.
+        If user provides a dictionary 'cmap', then attempt to directly create
+        colormapping between the discrete entries to the corresponding colors.
         """
         mapped_df = pd.DataFrame(0, index=df.index, columns=df.columns)
         vals = df.values.flatten()
@@ -318,6 +326,12 @@ class nheatmap():
                 maxima = max(c)
             norm = mpl.colors.Normalize(vmin=minima, vmax=maxima, clip=True)
             mapper = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+        else:
+            tick_dictionary = {y:x for x, y in enumerate(unique_labels)}
+            assert all(x in list(cmap.keys()) for x in unique_labels),\
+                    'the provided cmap does not contain all the unique values'
+            # mapper = ListedColormap([cmap[x] for x in unique_labels])
+            mapper = cmap
         mapped_df = df.replace(tick_dictionary)
         return mapped_df, mapper, unique_labels, tick_dictionary
 
@@ -593,11 +607,17 @@ class nheatmap():
             length = len(stored['ulab'])
             ncol = int(length / 10)
             if ncol < 1: ncol = 1
-            for i, u in enumerate(stored['ulab']):
-                val = stored['tdict'][u]
-                ax.scatter([], [], color=stored['mapper'].to_rgba(val),
-                        s=adjusted_s, label=u)
-                ax.patch.set_alpha(0)
+            if type(stored['mapper']) is dict:
+                for i, u in enumerate(stored['ulab']):
+                    ax.scatter([], [], color=stored['mapper'][u],
+                            s=adjusted_s, label=u)
+                    ax.patch.set_alpha(0)
+            else:
+                for i, u in enumerate(stored['ulab']):
+                    val = stored['tdict'][u]
+                    ax.scatter([], [], color=stored['mapper'].to_rgba(val),
+                            s=adjusted_s, label=u)
+                    ax.patch.set_alpha(0)
             ax.legend(frameon=False, title=key, ncol=ncol, loc='center',
                     fontsize=self.sub_title_font_size,
                     bbox_to_anchor=(1, 0.5))
