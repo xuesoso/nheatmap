@@ -67,7 +67,7 @@ class nheatmap():
             figsize=(4, 6), bcolumns=None, sub_title_font_size=10, widths=None,
             heights=None, dfr=None, dfc=None, edgecolors='k', rorder=None,
             corder=None, rorder_ascending=True, corder_ascending=True,
-            border=True, linewidths=1, wspace=0.1, hspace=0.05, xrot=45, yrot=0,
+            border=True, linewidths=None, wspace=0.1, hspace=0.05, xrot=45, yrot=0,
             tick_size=None, cmapCenter='viridis', cmapDiscrete='tab20b',
             rdendrogram_size=1, cdendrogram_size=1, srot=0, cmaps={},
             showxticks=None, showyticks=None, show_cbar=True):
@@ -140,7 +140,12 @@ class nheatmap():
         self.min_side_height = 0.4
         self.border = border
         self.edgecolors = edgecolors
-        self.linewidths = linewidths
+        if linewidths is None and max(self.size) > 100:
+            self.linewidths = 0
+        elif linewidths is None and maxx(self.size) <= 100:
+            self.linewidths = 1
+        else:
+            self.linewidths = linewidths
         self.hspace = hspace
         self.wspace = wspace
         if rorder is None:
