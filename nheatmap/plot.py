@@ -142,7 +142,7 @@ class nheatmap():
         self.edgecolors = edgecolors
         if linewidths is None and max(self.size) > 100:
             self.linewidths = 0
-        elif linewidths is None and maxx(self.size) <= 100:
+        elif linewidths is None and max(self.size) <= 100:
             self.linewidths = 1
         else:
             self.linewidths = linewidths
