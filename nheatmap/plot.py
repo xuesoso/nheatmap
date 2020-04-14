@@ -517,7 +517,7 @@ class nheatmap():
         if len(top_args) > 0:
             self.top_args = top_args
         self.determine_grid_sizes()
-        self.fig = plt.figure(constrained_layout=False, figsize=self.figsize)
+        self.fig = plt.figure(constrained_layout=True, figsize=self.figsize)
         ncols, nrows = len(self.widths), len(self.heights)
         gspec = self.fig.add_gridspec(ncols=ncols, nrows=nrows, width_ratios=self.widths,
                                   height_ratios=self.heights)
