@@ -558,6 +558,7 @@ class nheatmap():
                 cmap=self.default_cmaps['center'], config=self.center_args)
         if self.show_cbar:
             self.set_up_cbar()
+        self.fig.tight_layout()
         if save != '':
             self.fig.savefig(save, bbox_inches='tight', dpi=dpi)
         return self.fig, self.plots
@@ -635,7 +636,8 @@ class nheatmap():
                 cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt,
                         use_gridspec=True, aspect=10, fraction=0.3, pad=10,
                         panchor=(0, 0), anchor=(0, 0))
-                ax.set_xlim(-5,)
+                cb.ax.zorder=-1
+                # ax.set_xlim(-5,)
             if key not in ['__center__']:
                 cb.ax.text(0, 1.1, key, ha='left', va='center',
                         fontsize=self.sub_title_font_size)
