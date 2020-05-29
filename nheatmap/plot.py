@@ -650,15 +650,11 @@ class nheatmap():
                 cb.ax.yaxis.set_major_formatter(MathTextSciFormatter("%1.2e"))
             cb.ax.zorder=-1
             if key not in ['__center__']:
-                # cb.ax.text(0, 1.1, key, ha='left', va='center',
-                        # fontsize=self.sub_title_font_size)
-                cb.ax.set_title(self.center_args['cbar_title'], ha='left', va='center',
+                cb.ax.set_title(key, ha='left', va='center',
                         fontsize=self.sub_title_font_size, x=-0.2,
                         pad=self.sub_title_font_size)
             else:
                 if 'cbar_title' in self.center_args:
-                    # cb.ax.text(0, 1.1, self.center_args['cbar_title'], ha='left',
-                            # va='center', fontsize=self.sub_title_font_size)
                     cb.ax.set_title(self.center_args['cbar_title'], ha='left', va='center',
                             fontsize=self.sub_title_font_size, x=-0.2,
                             pad=self.sub_title_font_size)
