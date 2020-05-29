@@ -640,12 +640,15 @@ class nheatmap():
         else:
             if __below__:
                 stored['mapper'].set_array([])
-                cb = mpl.colorbar.ColorbarBase(ax=ax, cmap=stored['cmap'], norm=stored['norm'])
+                cb = mpl.colorbar.ColorbarBase(ax=ax, cmap=stored['cmap'], norm=stored['norm'],
+                        format=fmt)
             else:
-                ax.margins(x=10, y=10)
                 cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt,
                         use_gridspec=True, aspect=10, fraction=0.3)
-                cb.ax.zorder=-1
+            if np.max(cb.get_ticks()) > 100:
+                cb.formatter.set_powerlimits((0, 0))
+                cb.ax.yaxis.set_major_formatter(MathTextSciFormatter("%1.2e"))
+            cb.ax.zorder=-1
             if key not in ['__center__']:
                 cb.ax.text(0, 1.1, key, ha='left', va='center',
                         fontsize=self.sub_title_font_size)
@@ -667,7 +670,7 @@ class nheatmap():
         subplot is reserved for continuous colorbar, right half of the subplot
         is reserved for discrete colorbar.
         """
-        fmt = FormatScalarFormatter("%.2g")
+        fmt = FormatScalarFormatter("%.1f")
         self.caxs = {}
 
         ## colorbar plots
