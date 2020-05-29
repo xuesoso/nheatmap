@@ -517,7 +517,7 @@ class nheatmap():
         if len(top_args) > 0:
             self.top_args = top_args
         self.determine_grid_sizes()
-        self.fig = plt.figure(constrained_layout=True, figsize=self.figsize)
+        self.fig = plt.figure(figsize=self.figsize)
         ncols, nrows = len(self.widths), len(self.heights)
         gspec = self.fig.add_gridspec(ncols=ncols, nrows=nrows, width_ratios=self.widths,
                                   height_ratios=self.heights)
@@ -631,7 +631,11 @@ class nheatmap():
                 stored['mapper'].set_array([])
                 cb = mpl.colorbar.ColorbarBase(ax=ax, cmap=stored['cmap'], norm=stored['norm'])
             else:
-                cb = self.fig.colorbar(stored['mapper'], ax=ax, format=fmt, use_gridspec=True, aspect=10, fraction=0.3)
+                ax.margins(x=10, y=10)
+                cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt,
+                        use_gridspec=True, aspect=10, fraction=0.3, pad=10,
+                        panchor=(0, 0), anchor=(0, 0))
+                ax.set_xlim(-5,)
             if key not in ['__center__']:
                 cb.ax.text(0, 1.1, key, ha='left', va='center',
                         fontsize=self.sub_title_font_size)
