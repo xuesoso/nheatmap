@@ -70,7 +70,7 @@ class nheatmap():
             border=True, linewidths=None, wspace=0.1, hspace=0.05, xrot=45, yrot=0,
             tick_size=None, cmapCenter='viridis', cmapDiscrete='tab20b',
             rdendrogram_size=1, cdendrogram_size=1, srot=0, cmaps={},
-            showxticks=None, showyticks=None, show_cbar=True):
+            showxticks=None, showyticks=None, show_cbar=True, ax_gap=None):
         """
         ## Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap with the option to perform hierarchical clustering. The goal is to develop a python plotting package that is both intuitive in usage and extensive in plotting configuration.
 
@@ -214,6 +214,13 @@ class nheatmap():
             self.tcolumns = []
         else:
             self.tcolumns = tcolumns
+        if ax_gap is None:
+            if self.showyticks:
+                self.ax_gap = 1.5
+            else:
+                self.ax_gap = 0
+        else:
+            self.ax_gap = ax_gap
         self.bcolumns = bcolumns
 
     def set_up_cmap(self, cmaps):
@@ -521,7 +528,7 @@ class nheatmap():
         ncols, nrows = len(self.widths), len(self.heights)
         gspec = self.fig.add_gridspec(ncols=ncols, nrows=nrows, width_ratios=self.widths,
                                   height_ratios=self.heights)
-        center_plot = [len(self.heights)-1, len(self.widths)-1-self.show_cbar*2]
+        center_plot = [len(self.heights)-1, len(self.widths)-2-self.show_cbar*2]
         self.center_plot = center_plot
         self.plots = []
         rowHide = (len(self.tcolumns) + self.showCdendrogram)
@@ -530,7 +537,7 @@ class nheatmap():
             _tmp = []
             for col in range(ncols):
                 ax = self.fig.add_subplot(gspec[row, col])
-                if row < rowHide and col < colHide:
+                if row < rowHide and col < colHide or col == (ncols - 3):
                     self.hide_extra_grid(ax)
                 elif self.show_cbar:
                     if (row != (nrows-1) and col in [ncols - 1, ncols - 2]):
@@ -551,14 +558,13 @@ class nheatmap():
                     ax=self.plots[-1][0], which_side='left', **self.rdendrogram_args)
         if self.showCdendrogram:
             self.cdendrogram = self.plot_dendrogram(self.clinkage,
-                    ax=self.plots[0][-1-self.show_cbar*2], which_side='top',
+                    ax=self.plots[0][-2-self.show_cbar*2], which_side='top',
                     **self.cdendrogram_args)
         self.make_center_plot(df=self.data.iloc[self.rorder, self.corder],
                 ax=self.plots[center_plot[0]][center_plot[1]],
                 cmap=self.default_cmaps['center'], config=self.center_args)
         if self.show_cbar:
             self.set_up_cbar()
-        self.fig.tight_layout()
         if save != '':
             self.fig.savefig(save, bbox_inches='tight', dpi=dpi)
         return self.fig, self.plots
@@ -570,17 +576,21 @@ class nheatmap():
         ratio = self.figsize[0] / self.figsize[1]
         min_width = 3/self.figsize[0]*self.min_side_width
         min_height = 3/self.figsize[1]*self.min_side_height
-        self.widths = ([min_width]*len(self.lrows))
+        self.widths = ([min_width]*(len(self.lrows)))
         self.heights = ([min_height]*len(self.tcolumns))
+        self.widths.append(3+self.showRdendrogram*self.rdendrogram_size)
         if self.showRdendrogram:
             self.widths.insert(0, self.rdendrogram_size)
         if self.showCdendrogram:
             self.heights.insert(0, self.cdendrogram_size*(ratio/1))
-        self.widths.append(3+self.showRdendrogram*self.rdendrogram_size)
-        self.heights.append(3+self.showCdendrogram*self.cdendrogram_size)
+        self.widths.append(self.ax_gap+self.showRdendrogram*self.rdendrogram_size*(self.ax_gap > 0))
+        self.heights.append(4+self.showCdendrogram*self.cdendrogram_size)
         if self.show_cbar:
             self.widths.append(0.25)
-            self.widths.append(1)
+            if self.ax_gap == 0:
+                self.widths.append(1.25)
+            else:
+                self.widths.append(self.ax_gap)
 
     def hide_extra_grid(self, ax):
         ax.set_visible(False)
@@ -634,10 +644,8 @@ class nheatmap():
             else:
                 ax.margins(x=10, y=10)
                 cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt,
-                        use_gridspec=True, aspect=10, fraction=0.3, pad=10,
-                        panchor=(0, 0), anchor=(0, 0))
+                        use_gridspec=True, aspect=10, fraction=0.3)
                 cb.ax.zorder=-1
-                # ax.set_xlim(-5,)
             if key not in ['__center__']:
                 cb.ax.text(0, 1.1, key, ha='left', va='center',
                         fontsize=self.sub_title_font_size)
