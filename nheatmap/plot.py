@@ -590,7 +590,7 @@ class nheatmap():
             if self.ax_gap == 0:
                 self.widths.append(1.25)
             else:
-                self.widths.append(self.ax_gap)
+                self.widths.append(self.ax_gap+1.25)
 
     def hide_extra_grid(self, ax):
         ax.set_visible(False)
