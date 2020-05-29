@@ -631,7 +631,7 @@ class nheatmap():
                 stored['mapper'].set_array([])
                 cb = mpl.colorbar.ColorbarBase(ax=ax, cmap=stored['cmap'], norm=stored['norm'])
             else:
-                cb = self.fig.colorbar(stored['mapper'], cax=ax, format=fmt)
+                cb = self.fig.colorbar(stored['mapper'], ax=ax, format=fmt, use_gridspec=True, aspect=10, fraction=0.3)
             if key not in ['__center__']:
                 cb.ax.text(0, 1.1, key, ha='left', va='center',
                         fontsize=self.sub_title_font_size)
@@ -640,8 +640,6 @@ class nheatmap():
                     cb.ax.text(0, 1.1, self.center_args['cbar_title'], ha='left',
                             va='center', fontsize=self.sub_title_font_size)
             ax.patch.set_alpha(0)
-            ax.set_xlim(-1, 1)
-            ax.set_ylim(0, 1.5)
         ax.grid(False)
         self.remove_border(ax)
         self.remove_ticks(ax)
