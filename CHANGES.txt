@@ -5,6 +5,9 @@ nheatmap Package Changes Log
 
 Release Summary:
 
+0.1.4, August 26, 2020
+    Fixed bugs with gap addition when showing yticks. Fixed compatibility issues with matplotlib >= 3.2.0. Added options for hcluster (i.e. optimal_ordering). Added "packaging" as a required dependency.
+
 0.1.3, May 29, 2020
     Added option to adjust gap size between the center plot and colorbar / legend area. The defaults makes sensible guess to accomodate the inclusion of ytick labels. Included a single source version number.
 
@@ -17,6 +20,10 @@ Release Summary:
 Details of each release follow, from most recent to oldest.
 
 -------------------------------------------------------------------------------------
+
+0.1.4, August 26, 2020
+
+    Fixed bugs with gap addition when showing yticks. Fixed compatibility issues with matplotlib >= 3.2.0. Added options for hcluster (i.e. optimal_ordering). Added "packaging" as a required dependency.
 
 0.1.3, May 29, 2020
 

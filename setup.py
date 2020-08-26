@@ -34,5 +34,6 @@ setuptools.setup(
        "scipy >= 1.3.1",
        "numpy >= 1.17.2",
        "pandas >= 0.25.1",
+       "packaging",
    ],
 )
