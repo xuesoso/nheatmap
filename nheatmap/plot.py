@@ -11,6 +11,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from packaging import version
 __matplotlib_version__ = mpl.__version__
 __below__ = version.parse(__matplotlib_version__) < version.parse("3.1.0")
+__old_mathdefault__ = version.parse(__matplotlib_version__) < version.parse("3.3")
 
 class MidpointNormalize(Normalize):
     def __init__(self, vmin=None, vmax=None, vcenter=None, clip=False):
@@ -57,10 +58,13 @@ class FormatScalarFormatter(mticker.ScalarFormatter):
         mticker.ScalarFormatter.__init__(self, useOffset=offset,
                                             useMathText=mathText)
 
+    def _mathdefault(self, s):
+        return '\\mathdefault{%s}' % s
+
     def _set_format(self, vmin=None, vmax=None):
         self.format = self.fformat
         if self._useMathText:
-            self.format = '$%s$' % mticker._mathdefault(self.format)
+            self.format = '$%s$' % self._mathdefault(self.format)
 
 class nheatmap():
     def __init__(self, data:pd.DataFrame, lrows=None, rrows=None, tcolumns=None,
@@ -70,7 +74,7 @@ class nheatmap():
             border=True, linewidths=None, wspace=0.1, hspace=0.05, xrot=45, yrot=0,
             tick_size=None, cmapCenter='viridis', cmapDiscrete='tab20b',
             rdendrogram_size=1, cdendrogram_size=1, srot=0, cmaps={},
-            showxticks=None, showyticks=None, show_cbar=True, ax_gap=None):
+            showxticks=None, showyticks=None, show_cbar=True):
         """
         ## Inspired by pheatmap in R, this plotting tool aims to enable multi-level heatmap with the option to perform hierarchical clustering. The goal is to develop a python plotting package that is both intuitive in usage and extensive in plotting configuration.
 
@@ -214,13 +218,6 @@ class nheatmap():
             self.tcolumns = []
         else:
             self.tcolumns = tcolumns
-        if ax_gap is None:
-            if self.showyticks:
-                self.ax_gap = 1.5
-            else:
-                self.ax_gap = 0
-        else:
-            self.ax_gap = ax_gap
         self.bcolumns = bcolumns
 
     def set_up_cmap(self, cmaps):
@@ -234,7 +231,8 @@ class nheatmap():
                 processed_cmap[key] = cmaps[key]
         return processed_cmap
 
-    def make_dendrogram(self, df, method='average', metric='euclidean'):
+    def make_dendrogram(self, df, method='average', metric='euclidean',
+            optimal_ordering=False, **args):
         """
         function to only generate the linkage tree and dendrogram.
         I call 'hierarchy.dendrogram' so that I know how to reorder the data.
@@ -253,8 +251,9 @@ class nheatmap():
             documentation for available options. Defaults to 'euclidean'.
 
         """
-        linkage = hierarchy.linkage(df, method=method, metric=metric)
-        dendrogram = hierarchy.dendrogram(linkage, no_plot=True)
+        linkage = hierarchy.linkage(df, method=method, metric=metric,
+                optimal_ordering=optimal_ordering)
+        dendrogram = hierarchy.dendrogram(linkage, no_plot=True, **args)
         reorder = dendrogram['leaves']
         return linkage, reorder
 
@@ -342,7 +341,6 @@ class nheatmap():
             tick_dictionary = {y:x for x, y in enumerate(unique_labels)}
             assert all(x in list(cmap.keys()) for x in unique_labels),\
                     'the provided cmap does not contain all the unique values'
-            # mapper = ListedColormap([cmap[x] for x in unique_labels])
             mapper = cmap
         mapped_df = df.replace(tick_dictionary)
         return mapped_df, mapper, unique_labels, tick_dictionary
@@ -498,7 +496,7 @@ class nheatmap():
 
     def run(self, rdendrogram_args={}, cdendrogram_args={}, center_args={},
             left_args={}, top_args={}, hix=[], hiy=[], hix_args={}, hiy_args={},
-            fn='', save='', dpi=500):
+            fn='', save='', dpi=500, ax_gap=None):
         """
         function to generate the figure.
 
@@ -523,6 +521,13 @@ class nheatmap():
             self.left_args = left_args
         if len(top_args) > 0:
             self.top_args = top_args
+        if ax_gap is None:
+            if self.showyticks:
+                self.ax_gap = 1.5
+            else:
+                self.ax_gap = 0
+        else:
+            self.ax_gap = ax_gap
         self.determine_grid_sizes()
         self.fig = plt.figure(figsize=self.figsize)
         ncols, nrows = len(self.widths), len(self.heights)
@@ -537,10 +542,19 @@ class nheatmap():
             _tmp = []
             for col in range(ncols):
                 ax = self.fig.add_subplot(gspec[row, col])
-                if row < rowHide and col < colHide or col == (ncols - 3):
+                if row < rowHide and col < colHide:
                     self.hide_extra_grid(ax)
                 elif self.show_cbar:
                     if (row != (nrows-1) and col in [ncols - 1, ncols - 2]):
+                        self.hide_extra_grid(ax)
+                    elif col == (ncols - 3):
+                        self.hide_extra_grid(ax)
+                elif self.show_cbar is False:
+                    if self.showyticks and col == (ncols - 1):
+                        self.hide_extra_grid(ax)
+                    if row == 0:
+                        ax.set_yticks([])
+                    if col == (ncols - 1):
                         self.hide_extra_grid(ax)
                 _tmp.append(ax)
             self.plots.append(_tmp)
